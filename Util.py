@@ -1,4 +1,5 @@
 class Util:
+
 	@staticmethod
 	def gcd (a,b):
 		"""
@@ -41,7 +42,9 @@ class Util:
         :param mod: Modulus
         :return: Modular multiplicative inverse of other modulo mod
 		"""
+
 		if(Util.gcd(other,mod) != 1):
 			return "Inverse does not exist."
 		else:
 			return Util.mod_power(other, mod - 2, mod)
+	

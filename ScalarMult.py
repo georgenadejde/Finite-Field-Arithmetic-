@@ -18,36 +18,51 @@ Inverse = Util.mul_inverse
 modP = FiniteField(p)
 	
 def xADD(P,Q, diff_P_Q):
-	
-	# print("LOL\n")
-	# print(type(modP(P.x)))
-	# print(type(modP(P.z)))
-	# print("\n\n")
 
-	V_0 = modP(P.x) + modP(P.z)
-	V_1 = modP(Q.x) - modP(Q.z)
-	V_1 = V_1 * V_0
-	V_0 = modP(P.x) - modP(P.z)
-	V_2 = modP(Q.x) + modP(Q.z)
-	V_2 = V_2 * V_0
-	V_3 = V_1 + V_2
-	V_3 = V_3 * V_3
-	V_4 = V_1 - V_2
-	V_4 = V_4 * V_4
+	'''
+	Adds two elliptic curve points from a Montgomery curve
 
-	x_rez = (modP(diff_P_Q.z) * V_3)
-	z_rez = (modP(diff_P_Q.x) * V_4)
+	Params:
+	P: point on the elliptic curve
+	Q: point on the elliptic curve
+	diff_P_Q: P - Q
 
-	X = x_rez.result
-	Z = z_rez.result
+	Return:
+	P + Q
+	'''
 
-	# print((z))
-	# print((x))
-	# print("\n\n")
+	if diff_P_Q.is_POIF:
+		return ECPoint(0, None, 0) 
+	else:
+		V_0 = modP(P.x) + modP(P.z)
+		V_1 = modP(Q.x) - modP(Q.z)
+		V_1 = V_1 * V_0
+		V_0 = modP(P.x) - modP(P.z)
+		V_2 = modP(Q.x) + modP(Q.z)
+		V_2 = V_2 * V_0
+		V_3 = V_1 + V_2
+		V_3 = V_3 * V_3
+		V_4 = V_1 - V_2
+		V_4 = V_4 * V_4
 
-	return ECPoint(X, 0, Z) 
+		x_rez = (modP(diff_P_Q.z) * V_3)
+		z_rez = (modP(diff_P_Q.x) * V_4)
+
+		X = x_rez.result
+		Z = z_rez.result
+
+		return ECPoint(X, None, Z) 
 
 def xDBL(P):
+	'''
+	Computes [2]P
+
+	Params:
+	P - point on the elliptic curve
+
+	Return:
+	[2]P
+	'''
 	
 	V_1 = modP(P.x) + modP(P.z)
 	V_1 = V_1 * V_1
@@ -61,9 +76,13 @@ def xDBL(P):
 	z_2P = V_1 * V_3
 
 	X = x_2P.result
-	Z = z_2P.result
 
-	return ECPoint(X, 0, Z) 
+	if P.is_POIF():
+		Z = 0
+	else:
+		Z = z_2P.result	
+
+	return ECPoint(X, None, Z) 
 
 
 def int_to_bin_list(num):
@@ -95,43 +114,42 @@ def montgomery_ladder(k,P):
 	R_0 = P
 	R_1 = xDBL(P)
 	
-	for bit in int_to_bin_list(k):
-		# print("LOL\n")
-		print("R_0=",R_0)
-		print("R_1=",R_1)
-		# print(type(P))
-		
+	for bit in int_to_bin_list(k)[1:]:
 
 		if bit == 0:
-			print("bit: 0\n")
 			R_1 = xADD(R_0, R_1, P) 
 			R_0 = xDBL(R_0)
 		else:
-			print("bit: 1\n")
 			R_0 = xADD(R_0,R_1, P)
 			R_1 = xDBL(R_1)
 
-		print("\n\n")
-	
-	print("R_0=",R_0)
-	print("R_1=",R_1)	
 
 	return R_0
 		
 
 def main():
-	print (int_to_bin_list(17))
 
-	# xADD(ECPoint(1,0,4), ECPoint(10,0,7), ECPoint(1,0,4))
-	# xDBL(ECPoint(1,0,4))
+	'''
+	QUESTIONS:
+
+	- What is T precisely?
+	- [0]P ?
+	- since we only work with the x-coordinate,
+	  why is the ladder not returning the final
+	  value of it? now, it misses the step where
+	  it should be multiplied by the inverse of z
+	- added a simplify_point method, but not sure if needed,
+	  because the algo in the paper does not simplify the point
+	'''
+
 	P = ECPoint(387)
-	A = 4
-	rez = montgomery_ladder(2,P)
-	print("Results")
-	print(xDBL(ECPoint(387)))
-	print("Rez:",rez)
-	# print(modP(rez.x) // modP(rez.z) )
+	lad = montgomery_ladder(4,P)
 
+	print(lad.simplify_point(modP))
+	print(modP(lad.x) // modP(lad.z))
+
+	rez = xADD(P,POIF,P)
+	# print(rez.x // rez.z)
 
 
 main()
