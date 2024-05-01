@@ -36,10 +36,10 @@ class ECPoint:
 	# @staticmethod
 	def simplify_point(self):
 		# x // z
-		X = fp2_div(self.X, self.Z, self.p)
-		Z = ComplexPoint(1, 0, self.p)
+		self.X = fp2_div(self.X, self.Z, self.p)
+		self.Z = ComplexPoint(1, 0, self.p)
 
-		return ECPoint(X,Z,self.p)
+		return self
 
 	def __eq__(self, other):
 		if isinstance(other, ECPoint):
@@ -53,7 +53,7 @@ class ECPoint:
 		return self.Z
 
 	def is_POIF(self):
-		return self == ECPoint(x = ComplexPoint(0,0,self.p), p = self.p, y = ComplexPoint(1,0,self.p), z = ComplexPoint(0,0,self.p))
+		return self.Z == ComplexPoint(0,0,self.p) #self == ECPoint(x = ComplexPoint(0,0,self.p), p = self.p, y = ComplexPoint(1,0,self.p), z = ComplexPoint(0,0,self.p))
 
 	def __str__(self):
 

@@ -2,20 +2,26 @@
 from FP_arith import * 
 from Util import *
 from ECPoint import *
+import random
+import cmath  
 
 
 p = 1809251394333065553493296640760748573846642884164943950726130794095578185727 
 
 
 # curve parameter
-A = ComplexPoint(751569296930863363598356131447593046593862768592437527947038742804342540969,
-	            1798234580000369932369773894035327870837430306159012850472368713131657937742,
-	            p)
+# A = ComplexPoint(751569296930863363598356131447593046593862768592437527947038742804342540969,
+# 	            1798234580000369932369773894035327870837430306159012850472368713131657937742,
+# 	            p)
 
 
 xK = ComplexPoint(47740012980183545453926806418531833950371247694503085402799232463873975266
 				  ,1609588601564889182030537691458495766012715929008094228092802417485560618033
 				  , p)
+
+yK = ComplexPoint(433448596440900625388421437356132198674684564930975145274932602841915121367,
+	1448207449645360688773990653545547496727088082730664838864741114620683624430, p)
+
 
 # point at infinity in projective coord. (X,Z)
 POIF = ECPoint(x = ComplexPoint(0,0,p), p = p, y = ComplexPoint(1,0,p), z = ComplexPoint(0,0,p)) 
@@ -56,7 +62,7 @@ def xADD(P,Q, diff_P_Q):
 
 		return ECPoint(X, None, Z) 
 
-def xDBL(P):
+def xDBL(P, a):
 	'''
 	Computes [2]P
 
@@ -67,17 +73,16 @@ def xDBL(P):
 	[2]P
 	'''
 	
-	V_1 = fp2_add(P.X, P.Z, p)
-	V_1 = fp2_pow(V_1, 2, p)
-	V_2 = fp2_sub(P.X, P.Z, p)
-	V_2 = fp2_pow(V_2 ,2 ,p)
+	V_1  = fp2_add(P.X, P.Z, p)
+	V_1  = fp2_mul(V_1, V_1, p)
+	V_2  = fp2_sub(P.X, P.Z, p)
+	V_2  = fp2_mul(V_2 ,V_2 ,p)
 	x_2P = fp2_mul(V_1, V_2, p)
 
-	V_1 = fp2_sub(V_1, V_2, p)
-
-	a2 =  ComplexPoint(2,0,p)
-	c1 =  fp2_add(A,a2,p)
-	c2 =  ComplexPoint(4, 0, p)
+	V_1 =  fp2_sub(V_1, V_2, p)
+	a2  =  ComplexPoint(2,0,p)
+	c1  =  fp2_add(a,a2,p)
+	c2  =  ComplexPoint(4, 0, p)
 
 	V_3 = fp2_mul(fp2_div(c1, c2, p), V_1, p)
 	V_3 = fp2_add(V_3, V_2, p)
@@ -92,11 +97,11 @@ def xDBL(P):
 
 	return ECPoint(X, p, y=None, z= Z) 
 
-def xDBLe(P,e):
+def xDBLe(P, e, a):
 
 	rez = P
-	for i in range(0, e):
-		rez = xDBL(rez)
+	for i in range(e):
+		rez = xDBL(rez, a)
 
 	return rez
 
@@ -164,22 +169,22 @@ def j_invariant(a,p):
 	
 	R = fp2_div(N,D,p)		    # [ 256 * (a^2-3)^3 ] / (a^2-4)
 
-	return R
+	return R 
 
-def get_A(alpha,p):
+def get_next_A(alpha,p):
 	
-	sq = fp2_pow(alpha,2,p) # alpha^2
-	sq2 = fp2_mul(sq,2,p)   # 2*alpha^2
+	sq = fp2_mul(alpha,alpha,p) # alpha^2
+	sq2 = fp2_add(sq,sq,p)   # 2*alpha^2
 	c = ComplexPoint(1,0,p) # 1 + 0*i
 	B = fp2_sub(c,sq2,p)    # 1-2*alpha^2
-	R = fp2_mul(2,B,p)      # 2*(1-2*alpha^2)
+	R = fp2_add(B,B,p)      # 2*(1-2*alpha^2)
 
 	return R
 
 def iso2_curve(x,alpha,p):
  
 	ax = fp2_mul(alpha,x,p)  # alpha*x
-	c = ComplexPoint(-1,0,p) # -1 + 0*i
+	c = ComplexPoint(1,0,p)  # 1 + 0*i
 	n2 = fp2_sub(ax,c,p)     # alpha * x - 1 
 	N = fp2_mul(x,n2,p)      # x * (alpha*x - 1)
 
@@ -189,17 +194,68 @@ def iso2_curve(x,alpha,p):
 
 	return R
 
-def iso2_eval(x):
-	pass
+def is_order_2(P,a):
+
+	return xDBL(P,a).is_POIF()
+
+
+def is_supersingular(A, num_trials=10):
+    
+    trial = 1
+    while trial <= num_trials:
+        # Get a random x coordinate on the EC
+        xP = ComplexPoint(random.randint(2,p),random.randint(2,p),p)
+        x2 = fp2_mul(xP,xP,p) 			# x^2 
+        x3 = fp2_mul(xP,xP,p) 			# x^3
+        ax2 = fp2_mul(A,x2,p) 			# a*x^2
+        add1 = fp2_add(x3,ax2,p) 		# x^3 + a*x^2
+        y_square = fp2_add(add1,xP,p)  # x^3 + a*x^2 + x
+        print(trial)
+        # Check if x^3 + Ax^2 + x is a square  
+        if is_square(y_square):
+            P = ECPoint(xP,p)
+            checkMul = montgomery_ladder(p*p+1,P)
+            if checkMul.is_POIF():
+                trial = trial + 1
+            else:
+                return False
+            
+    return True
+
+
 
 def isog_2e(a, S, e):
 	
 	while e:
-		ker = xDBLe(S, e - 1) 
-		alpha = ker.X
-		a = get_A(alpha, p)
-		e = e - 1
+		print(f"S.x = {S.X}")
+		print(f"A = {a}")
+		print(f"order = {e}")
+		ker = xDBLe(S, e - 1, a) 
+		print(f"ker = {ker}\n")
+		print(f"XDBL = {xDBL(ker,a)}")
 
+		ker.simplify_point()
+		alpha = ker.X
+		# verify order alpha is 2
+		if is_order_2(ker,a):
+			# get next A needs alpha affine, e.g. simplified ker.X
+			# instead, would want to do this projectively
+			a = get_next_A(alpha, p)
+			print(f"j invariant = {j_invariant(a,p)}")
+			#check that a is supersingular
+			# assert is_supersingular(a)
+			e = e - 1
+			if e  > 0:
+				S.simplify_point()
+				#this is now affine version
+				S.X = iso2_curve(S.X, alpha, p)
+				# iso2_curve_projective, with S projectve and alpha projective
+				# ensure that (imX : imZ) simplifies to the same as (S.X : 1)
+		else:
+			print(f"\n{e}")
+			print("Alpha is not of order 2.\n")
+			break
+		print("\n\n")
 	return a
 
 
@@ -207,37 +263,40 @@ def main():
 
 	'''
 	QUESTIONS:
-
+	- when checking if a point is of order 2, i get Z=0 but X is not 1. Is this still POIF?	
+	- if i don't simplify the ker, the program does not work (yields a non-order 2 alpha for the next iter)
 	'''
+
+
 	A = ComplexPoint(751569296930863363598356131447593046593862768592437527947038742804342540969,
 	            1798234580000369932369773894035327870837430306159012850472368713131657937742,
 	            p)
 	order = 52
 
 	S = ECPoint(xK, p=p)
-	
 
-	A = isog_2e(A,S,order)
-	
-	print(j_invariant(A,p))
+	rez = isog_2e(A,S,order)
 
+	# print(S)
+	# dblS = xDBLe(S, 51, A)
+	# print(fp2_div(dblS.X, dblS.Z, p)) 	
+	# print(dblS.simplify_point())
 
-	c = ComplexPoint(733129935304444057399094841997377855449615348932625102326641103623966350086,
+	print(f"My final A = {rez}\n")
+	print(f"My j_invariant: {j_invariant(rez,p)}")
+
+	x = ComplexPoint(733129935304444057399094841997377855449615348932625102326641103623966350086,
 					622764407792741832064267776029604004876062748457690044116364384817066521173,p)
+	z = ComplexPoint(971241277239417404462594040891046505615025646569885413196035817346782477360,
+				1602963966652920992668623644809404193323285854490388641139684664564451659961,p)
+	correctRez = fp2_div(x,z,p) 
+	print(f"\n\nCORRECT j_invariant: {j_invariant(correctRez,p)}")
 
-	print(f"\n\nCORRECT: {j_invariant(c,p)}")
+	print(f"\n\n ARE THEY THE SAME? {j_invariant(rez,p) == j_invariant(correctRez,p)}")
 
-	print(f"\n\n ARE THEY THE SAME? {j_invariant(A,p) == j_invariant(c,p)}")
+	sageA = ComplexPoint(1257067101235690800956486482453375172900760553591982339278706906628800031817, 
+		390949035742497759430109018042411859860852776813963475965028075830395941209,p)
 
-	# P = ECPoint(ComplexPoint(387,0,p),p)
-	# lad = montgomery_ladder(4,P)
-
-	# print(lad.simplify_point())
-	# print(modP(lad.x) // modP(lad.z))
-
-
-	# rez = xADD(P,POIF,P)
-
-
+	print(f"SAGE result (j_invariant): {j_invariant(sageA,p)}")
 
 main()

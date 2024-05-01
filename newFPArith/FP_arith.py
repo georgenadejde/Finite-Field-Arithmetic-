@@ -54,7 +54,7 @@ def fp_pow(x,pw,p):
 def fp_inv(x,p):
 
 
-	return Util.mul_inverse(x,p)
+	return Util.mul_inverse(x,p) % p
 
 def fp_div(x,y,p):
 	'''
@@ -78,7 +78,7 @@ def fp2_add(c1,c2,p):
 	Return:
 	Result finite field addition
 	'''
-	P = p*p
+	P = p
 	return ComplexPoint(fp_add(c1.real, c2.real, P), fp_add(c1.imag, c2.imag, P), p)
 
 def fp2_sub(c1,c2,p):
@@ -91,7 +91,7 @@ def fp2_sub(c1,c2,p):
 	finite field subtraction 
 	'''
 	
-	return ComplexPoint(fp_sub(c1.real, c2.real, p*p), fp_sub(c1.imag, c2.imag, p*p), p)	
+	return ComplexPoint(fp_sub(c1.real, c2.real, p), fp_sub(c1.imag, c2.imag, p), p)	
 
 def fp2_mul(c1,c2,p):
 	'''
@@ -104,8 +104,8 @@ def fp2_mul(c1,c2,p):
 	'''
 	
 	# (a+bi) * (c+di) = (ac - bd) + (ad + bc)i
-	real_part = fp_sub(fp_mul(c1.real, c2.real, p*p), fp_mul(c1.imag, c2.imag, p*p), p*p)
-	imag_part = fp_add(fp_mul(c1.real, c2.imag, p*p), fp_mul(c1.imag, c2.real, p*p), p*p) 
+	real_part = fp_sub(fp_mul(c1.real, c2.real, p), fp_mul(c1.imag, c2.imag, p), p)
+	imag_part = fp_add(fp_mul(c1.real, c2.imag, p), fp_mul(c1.imag, c2.real, p), p) 
 
 	return ComplexPoint(real_part, imag_part, p)
 
