@@ -7,8 +7,9 @@ class Util:
 		"""
 		Check if a number is prime.
 
-		:param n: The number to check
-		:return: True if the number is prime, False otherwise
+		n: The number to check
+		
+		Return: True if the number is prime, False otherwise
 		"""
 		if (n == 1):
 			return False
@@ -27,10 +28,12 @@ class Util:
 		"""
         Calculate the greatest common divisor (GCD) of two numbers.
 
-        :param a: First number
-        :param b: Second number
-        :return: GCD of a and b
+        a: First number
+        b: Second number
+        
+        Return: gcd(a, b)
         """
+
 		while b != 0:
 			r = a % b
 			a = b
@@ -40,11 +43,13 @@ class Util:
 	def mod_power(x, p, m):
 		'''Calculate modular exponentiation (x^p % m).
 
-        :param x: Base
-        :param p: Exponent
-        :param m: Modulus
-        :return: Result of x^p % m
+        x: Base
+        p: Exponent
+        m: Modulus
+        
+        Return: Result of x^p % m
 		'''
+
 		if p == 0:
 			return 1
 
@@ -58,11 +63,12 @@ class Util:
 
 	def mul_inverse(other, mod):
 		"""
-		 Calculate the modular multiplicative inverse.
+		Calculate the modular multiplicative inverse.
 
-        :param other: Number for which inverse is to be calculated
-        :param mod: Modulus
-        :return: Modular multiplicative inverse of other modulo mod
+        other: Number for which inverse is to be calculated
+        mod: Modulus
+        
+        Return: Modular multiplicative inverse of other modulo mod
 		"""
 
 		if(Util.gcd(other,mod) != 1 or not Util.isPrime(mod)):

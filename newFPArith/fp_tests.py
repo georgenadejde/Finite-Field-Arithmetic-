@@ -8,6 +8,7 @@ from ECPoint import *
 from math import gcd
 from sympy import isprime
 from Montgomery import *
+
 p = 431
 
 class TestUtilFunctions(unittest.TestCase):
@@ -71,20 +72,20 @@ class TestFPArithmetic(unittest.TestCase):
         
     @given(rand(), rand(), rand(), rand(), rand(2))
     def test_fp2_addition(self, a, b, c, d, mod):
-        result = fp2_add(ComplexPoint(a, b, p=mod), ComplexPoint(c, d, p=mod), mod)
-        assert result == ComplexPoint((a + c) % mod, (b + d) % mod, p=mod)
+        result = fp2_add(ComplexPoint(a, b), ComplexPoint(c, d), mod)
+        assert result == ComplexPoint((a + c) % mod, (b + d) % mod)
 
     @given(rand(), rand(), rand(), rand(), rand(2))
     def test_fp2_subtraction(self, a, b, c, d, mod):
         result = fp2_sub(ComplexPoint(a, b), ComplexPoint(c, d), mod)
-        assert result == ComplexPoint((a - c) % mod, (b - d) % mod, mod)
+        assert result == ComplexPoint((a - c) % mod, (b - d) % mod)
 
     @given(rand(), rand(), rand(), rand(), rand(2))
     def test_fp2_multiplication(self, a, b, c, d, mod):
         result = fp2_mul(ComplexPoint(a, b), ComplexPoint(c, d), mod)
         real_part = (a * c - b * d) % mod
         imag_part = (a * d + b * c) % mod
-        assert result == ComplexPoint(real_part, imag_part, mod)
+        assert result == ComplexPoint(real_part, imag_part)
 
     # @given(rand(min_value=0, max_value=10), rand(min_value=0, max_value=10), rand(min_value=0, max_value=10), rand(min_value=2))
     # def test_fp2_power(self, a, b, pw, mod):
@@ -101,7 +102,7 @@ class TestFPArithmetic(unittest.TestCase):
         gcd_val = Util.gcd(c2.real, mod)
         if isprime(mod*mod) and gcd_val == 1:
             result = fp2_div(c1, c2, mod)
-            assert result == ComplexPoint((a * c2.real + b * c2.imag) % (mod*mod), (b * c2.real - a * c2.imag) % mod, mod)
+            assert result == ComplexPoint((a * c2.real + b * c2.imag) % mod, (b * c2.real - a * c2.imag) % mod)
 
 class TestIsogenyFormulas(unittest.TestCase):
     
@@ -109,52 +110,53 @@ class TestIsogenyFormulas(unittest.TestCase):
         pass
         # pg. 15
 
-        # A = ComplexPoint(423,329,p)
-        # print(xxDBLe(ECPoint(ComplexPoint(79,271,431),431), 3,A))
-        # assert xxDBLe(ECPoint(ComplexPoint(79,271,431),431), 3,A) == ECPoint(ComplexPoint(37,18,431), 431)
+        # A = ComplexPoint(423,329)
+        # print(xxDBLe(ECPoint(ComplexPoint(79,271),p), 3,A))
+        # assert xxDBLe(ECPoint(ComplexPoint(79,271),p), 3,A) == ECPoint(ComplexPoint(37,18), p)
 
-        # A = ComplexPoint(132,275,p)
+        # A = ComplexPoint(132,275)
         # # pg. 15
-        # assert xxDBLe(ECPoint(ComplexPoint(111,36,431), 431), 2) == ECPoint(ComplexPoint(49,7,431), 431)
+        # assert xxDBLe(ECPoint(ComplexPoint(111,36), p), 2) == ECPoint(ComplexPoint(49,7), p)
 
-        # A = ComplexPoint(76,273,p)
+        # A = ComplexPoint(76,273)
         # # pg. 15
-        # print(xxDBLe(ECPoint(ComplexPoint(374,274,431), 431), 1,A))
-        # assert xxDBLe(ECPoint(ComplexPoint(374,274,431), 431), 1,A) == ECPoint(ComplexPoint(27,245,431), 431)
+        # print(xxDBLe(ECPoint(ComplexPoint(374,274), p), 1,A))
+        # assert xxDBLe(ECPoint(ComplexPoint(374,274), p), 1,A) == ECPoint(ComplexPoint(27,245), p)
 
 
     def test_j_invariant(self):
         # pg. 7 Craig
-        assert j_invariant(ComplexPoint(415,0,431),431) == ComplexPoint(189,0,431)
+        print(j_invariant(ECPoint(ComplexPoint(415,0),p)))
+        assert j_invariant(ECPoint(ComplexPoint(415,0),p)) == ComplexPoint(189,0)
         
         # pg. 6 Craig
-        assert j_invariant(ComplexPoint(423,102,431),431) == ComplexPoint(190,344,431)
+        assert j_invariant(ECPoint(ComplexPoint(423,102),p)) == ComplexPoint(190,344)
 
         # pg. 6 Craig
-        assert j_invariant(ComplexPoint(161,208,431),431) == ComplexPoint(304,364,431)
+        assert j_invariant(ECPoint(ComplexPoint(161,208),p)) == ComplexPoint(304,364)
 
         # pg.3 Craig
-        assert j_invariant(ComplexPoint(162,172,431),431) == ComplexPoint(304,364,431)
+        assert j_invariant(ECPoint(ComplexPoint(162,172),p)) == ComplexPoint(304,364)
 
         # pg. 14 Craig
-        assert j_invariant(ComplexPoint(423,329,431),431) == ComplexPoint(190,87,431)
+        assert j_invariant(ECPoint(ComplexPoint(423,329),p)) == ComplexPoint(190,87)
 
     def test_compute_A(self):
 
         # pg. 6
-        alpha = ComplexPoint(68,350,431)
-        newA = get_next_A(alpha,431)
-        assert j_invariant(newA,431) == ComplexPoint(190,344,431)
+        alpha = ECPoint(ComplexPoint(68,350),p)
+        newA = get_next_A(alpha)
+        assert j_invariant(newA) == ComplexPoint(190,344)
 
         # pg. 15
-        alpha = ComplexPoint(37,18,431)
-        newA = get_next_A(alpha,431)
-        assert j_invariant(newA,431) == ComplexPoint(107,0,431)
+        alpha = ECPoint(ComplexPoint(37,18),p)
+        newA = get_next_A(alpha)
+        assert j_invariant(newA) == ComplexPoint(107,0)
 
         # pg. 15
-        alpha = ComplexPoint(49,7,431)
-        newA = get_next_A(alpha,431)
-        assert j_invariant(newA,431) == ComplexPoint(190, 344,431)
+        alpha = ECPoint(ComplexPoint(49,7),p)
+        newA = get_next_A(alpha)
+        assert j_invariant(newA) == ComplexPoint(190, 344)
 
     
 
