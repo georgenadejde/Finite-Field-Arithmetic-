@@ -50,7 +50,7 @@ class TestFPArithmetic(unittest.TestCase):
         result = fp_mul(a, b, mod)
         assert result == (a * b) % mod
 
-    @given(rand(min_value=0, max_value=10), rand(min_value=0, max_value=10), rand(min_value=2))
+    @given(rand(min_value=0), rand(min_value=0), rand(min_value=2))
     def test_finite_field_power(self, x, pw, mod):
         result = fp_pow(x, pw, mod)
         assert result == pow(x, pw, mod)

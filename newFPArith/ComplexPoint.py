@@ -12,10 +12,6 @@ class ComplexPoint:
 
         return False
 
-    def __check_same_field(self, other):
-        if self.p != other.p:
-            raise ValueError("Operands are not in the same finite field.")
-
     def __str__(self):
         if self.imag == 0:
             return f"{self.real}"

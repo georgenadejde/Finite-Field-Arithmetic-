@@ -44,12 +44,12 @@ def fp_pow(x,pw,p):
 	if pw == 0:
 		return 1
 
-	rez = x
-	while pw > 1:
-		rez = fp_mul(rez,x,p)
-		pw = pw - 1
-
-	return rez % p
+	rez = fp_pow(x, pw // 2, p) % p
+	square = fp_mul(rez,rez,p)
+	if pw & 1:
+		return (x * square) % p
+	else:
+		return square % p
 
 def fp_inv(x,p):
 

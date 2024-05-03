@@ -7,9 +7,6 @@ class ECPoint:
 	def __init__(self, x, p, y = 0, z = 1):
 		
 		'''Creation of an elliptic curve point
-		
-		
-		
 		Args:
 			x (ComplexPoint): x coordinate
 			p (int): modulo
@@ -24,18 +21,15 @@ class ECPoint:
 			self.Y = y
 
 		self.p = p
+		self.X = x
 
-		# poif in projective coordinates
-		if not x and not z:
-			self.X = ComplexPoint(1, 0, p)
-			self.Z = ComplexPoint(0, 0, p)	
+		if z == 1:
+			self.Z = ComplexPoint(1,0,p)
 		else:
-			self.X = x
-			self.Z = z
-
-	# @staticmethod
+			self.Z = z		
+		
 	def simplify_point(self):
-		# x // z
+		# x = X // Z
 		self.X = fp2_div(self.X, self.Z, self.p)
 		self.Z = ComplexPoint(1, 0, self.p)
 
@@ -53,7 +47,10 @@ class ECPoint:
 		return self.Z
 
 	def is_POIF(self):
-		return self.Z == ComplexPoint(0,0,self.p) #self == ECPoint(x = ComplexPoint(0,0,self.p), p = self.p, y = ComplexPoint(1,0,self.p), z = ComplexPoint(0,0,self.p))
+		return self.Z == ComplexPoint(0,0,self.p)
+
+	def is_T(self):
+		return self.X == ComplexPoint(0,0,self.p) and not (self.Z == ComplexPoint(0,0,self.p))
 
 	def __str__(self):
 

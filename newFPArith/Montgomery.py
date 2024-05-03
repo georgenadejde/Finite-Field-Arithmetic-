@@ -24,7 +24,7 @@ yK = ComplexPoint(43344859644090062538842143735613219867468456493097514527493260
 
 
 # point at infinity in projective coord. (X,Z)
-POIF = ECPoint(x = ComplexPoint(0,0,p), p = p, y = ComplexPoint(1,0,p), z = ComplexPoint(0,0,p)) 
+POIF = ECPoint(ComplexPoint(1,0,p), p, z = ComplexPoint(0,0,p)) 
 
 def xADD(P,Q, diff_P_Q):
 
@@ -40,8 +40,8 @@ def xADD(P,Q, diff_P_Q):
 	P + Q
 	'''
 
-	if diff_P_Q.is_POIF():
-		return ECPoint(x=ComplexPoint(0,0,p), p=self.p, z=ComplexPoint(0,0,p)) 
+	if diff_P_Q.is_POIF() or diff_P_Q.is_T():
+		return POIF
 	else:
 		V_0 = fp2_add(P.X, P.Z, p)
 		V_1 = fp2_sub(Q.X, Q.Z, p)
@@ -60,7 +60,7 @@ def xADD(P,Q, diff_P_Q):
 		X = x_rez
 		Z = z_rez
 
-		return ECPoint(X, None, Z) 
+		return ECPoint(X, p, z=Z) 
 
 def xDBL(P, a):
 	'''
@@ -71,31 +71,31 @@ def xDBL(P, a):
 
 	Return:
 	[2]P
-	'''
-	
-	V_1  = fp2_add(P.X, P.Z, p)
-	V_1  = fp2_mul(V_1, V_1, p)
-	V_2  = fp2_sub(P.X, P.Z, p)
-	V_2  = fp2_mul(V_2 ,V_2 ,p)
-	x_2P = fp2_mul(V_1, V_2, p)
+	'''	
 
-	V_1 =  fp2_sub(V_1, V_2, p)
-	a2  =  ComplexPoint(2,0,p)
-	c1  =  fp2_add(a,a2,p)
-	c2  =  ComplexPoint(4, 0, p)
+	if P.is_POIF() or P.is_T():
+		return POIF
 
-	V_3 = fp2_mul(fp2_div(c1, c2, p), V_1, p)
-	V_3 = fp2_add(V_3, V_2, p)
-	z_2P = fp2_mul(V_1, V_3, p)
-
-	X = x_2P
-
-	if P.is_POIF():
-		Z = 0
 	else:
+		V_1  = fp2_add(P.X, P.Z, p)
+		V_1  = fp2_mul(V_1, V_1, p)
+		V_2  = fp2_sub(P.X, P.Z, p)
+		V_2  = fp2_mul(V_2 ,V_2 ,p)
+		x_2P = fp2_mul(V_1, V_2, p)
+
+		V_1 =  fp2_sub(V_1, V_2, p)
+		a2  =  ComplexPoint(2,0,p)
+		c1  =  fp2_add(a,a2,p)
+		c2  =  ComplexPoint(4, 0, p)
+
+		V_3 = fp2_mul(fp2_div(c1, c2, p), V_1, p)
+		V_3 = fp2_add(V_3, V_2, p)
+		z_2P = fp2_mul(V_1, V_3, p)
+
+		X = x_2P
 		Z = z_2P
 
-	return ECPoint(X, p, y=None, z= Z) 
+		return ECPoint(X, p, z= Z) 
 
 def xDBLe(P, e, a):
 
@@ -118,7 +118,7 @@ def int_to_bin_list(num):
 
 	return [int(i) for i in [*bin(num).lstrip('0b')] ]
 
-def montgomery_ladder(k,P):
+def montgomery_ladder(k,P,a):
 	'''
 	Implementation of the Montgomery Ladder scalar
 	multiplication algorithm.
@@ -131,18 +131,21 @@ def montgomery_ladder(k,P):
 	[k]P in projective coordinates (X',Z')
 	'''
 
-	R_0 = P
-	R_1 = xDBL(P)
-	
-	for bit in int_to_bin_list(k)[1:]:
+	if P.is_POIF() or P.is_T():
+		return POIF
 
+	R_0 = P
+	R_1 = xDBL(P,a)
+
+	for bit in int_to_bin_list(k)[1:]:
 		if bit == 0:
+
 			R_1 = xADD(R_0, R_1, P) 
-			R_0 = xDBL(R_0)
+			R_0 = xDBL(R_0,a)
+
 		else:
 			R_0 = xADD(R_0,R_1, P)
-			R_1 = xDBL(R_1)
-
+			R_1 = xDBL(R_1,a)
 
 	return R_0
 
@@ -198,31 +201,61 @@ def is_order_2(P,a):
 
 	return xDBL(P,a).is_POIF()
 
+def is_square(q):
+	'''Legendre check for square
+	
+	[description]
+	
+	Args:
+		q ([type]): [description]
+	'''
+	pw = fp_pow(q,(p-1) // 2, p)
+	
+	return (pw == 1) 
+
+def get_norm(c):
+	'''Compute N(c) = a^2 + b^2, where c = a+bi
+	
+	[description]
+	
+	Args:
+		c ([type]): [description]
+	'''
+
+	a2 = fp_mul(c.real, c.real, p)
+	b2 = fp_mul(c.imag, c.imag, p)
+
+	norm = fp_add(a2,b2,p)
+
+	return norm
+
+def compute_y_squared(x,A):
+	x2 = fp2_pow(x,2,p) 			# x^2 
+	ax2 = fp2_mul(A,x2,p) 			# a*x^2
+	x3 = fp2_pow(x,3,p) 			# x^3
+	add1 = fp2_add(x3,ax2,p) 		# x^3 + a*x^2
+	y_square = fp2_add(add1,x,p)    # x^3 + a*x^2 + x
+
+	return y_square
 
 def is_supersingular(A, num_trials=10):
     
     trial = 1
     while trial <= num_trials:
         # Get a random x coordinate on the EC
-        xP = ComplexPoint(random.randint(2,p),random.randint(2,p),p)
-        x2 = fp2_mul(xP,xP,p) 			# x^2 
-        x3 = fp2_mul(xP,xP,p) 			# x^3
-        ax2 = fp2_mul(A,x2,p) 			# a*x^2
-        add1 = fp2_add(x3,ax2,p) 		# x^3 + a*x^2
-        y_square = fp2_add(add1,xP,p)  # x^3 + a*x^2 + x
-        print(trial)
+        xP = ComplexPoint(random.randint(2,p-1),random.randint(2,p-1),p)
+        y_square = compute_y_squared(xP,A)
+        norm = get_norm(y_square)
         # Check if x^3 + Ax^2 + x is a square  
-        if is_square(y_square):
+        if is_square(norm):
             P = ECPoint(xP,p)
-            checkMul = montgomery_ladder(p*p+1,P)
-            if checkMul.is_POIF():
+            ladder = montgomery_ladder(p*p-1,P,A)
+            if ladder.is_POIF():
                 trial = trial + 1
             else:
                 return False
             
     return True
-
-
 
 def isog_2e(a, S, e):
 	
@@ -230,6 +263,8 @@ def isog_2e(a, S, e):
 		print(f"S.x = {S.X}")
 		print(f"A = {a}")
 		print(f"order = {e}")
+		#check that a is supersingular
+		assert is_supersingular(a)
 		ker = xDBLe(S, e - 1, a) 
 		print(f"ker = {ker}\n")
 		print(f"XDBL = {xDBL(ker,a)}")
@@ -238,12 +273,10 @@ def isog_2e(a, S, e):
 		alpha = ker.X
 		# verify order alpha is 2
 		if is_order_2(ker,a):
-			# get next A needs alpha affine, e.g. simplified ker.X
+			# get_next_A() needs alpha affine, e.g. simplified ker.X
 			# instead, would want to do this projectively
 			a = get_next_A(alpha, p)
-			print(f"j invariant = {j_invariant(a,p)}")
-			#check that a is supersingular
-			# assert is_supersingular(a)
+			# print(f"j invariant = {j_invariant(a,p)}")
 			e = e - 1
 			if e  > 0:
 				S.simplify_point()
