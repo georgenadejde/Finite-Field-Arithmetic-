@@ -9,7 +9,7 @@ import cmath
 p = 1809251394333065553493296640760748573846642884164943950726130794095578185727 
 
 # point at infinity in projective coord. (X,Z)
-POIF = ECPoint(ComplexPoint(1,0), p, z = ComplexPoint(0,0)) 
+POIF = ECPoint(Fp2Point(1,0), p, z = Fp2Point(0,0)) 
 
 def int_to_bin_list(num):
 	'''
@@ -79,7 +79,7 @@ def xDBL(P, A):
 		# check if a is in projective coordinates
 		# get x = X / Z
 		if isinstance(A,ECPoint):
-			A = A.simplify_point().X
+			A = A.normalize().X
 		V_1  = fp2_add(P.X, P.Z, p)
 		V_1  = fp2_mul(V_1, V_1, p)
 		V_2  = fp2_sub(P.X, P.Z, p)
@@ -87,9 +87,9 @@ def xDBL(P, A):
 		x_2P = fp2_mul(V_1, V_2, p)
 
 		V_1 =  fp2_sub(V_1, V_2, p)
-		a2  =  ComplexPoint(2,0)
+		a2  =  Fp2Point(2,0)
 		c1  =  fp2_add(A,a2,p)
-		c2  =  ComplexPoint(4, 0)
+		c2  =  Fp2Point(4, 0)
 
 		V_3 = fp2_mul(fp2_div(c1, c2, p), V_1, p)
 		V_3 = fp2_add(V_3, V_2, p)
@@ -213,7 +213,7 @@ def compute_y_squared(x,A):
 	# check if a is in projective coordinates
 	# get x = X / Z
 	if isinstance(A,ECPoint):
-		A = A.simplify_point().X
+		A = A.normalize().X
 	
 	x2 = fp2_pow(x,2,p) 			# x^2 
 	ax2 = fp2_mul(A,x2,p) 			# a*x^2
@@ -240,7 +240,7 @@ def is_supersingular(A, num_trials=10):
     trial = 1
     while trial <= num_trials:
         # Get a random x coordinate on the EC
-        xP = ComplexPoint(random.randint(2,p-1),random.randint(2,p-1))
+        xP = Fp2Point(random.randint(2,p-1),random.randint(2,p-1))
         # Computes x^3 + Ax^2 + x
         y_square = compute_y_squared(xP,A)
         # Computes the norm of y^2
@@ -273,9 +273,9 @@ def j_invariant(A):
 	# can also add p as a parameter
 	p = A.p
 
-	c256 = ComplexPoint(256,0)    # 256 + 0*i
-	c3 = ComplexPoint(3,0)        # 3 + 0*i
-	c4 = ComplexPoint(4,0)        # 4 + 0*i
+	c256 = Fp2Point(256,0)    # 256 + 0*i
+	c3 = Fp2Point(3,0)        # 3 + 0*i
+	c4 = Fp2Point(4,0)        # 4 + 0*i
 
 	ax2 = fp2_mul(A.X,A.X,p)        # A.X^2
 	az2 = fp2_mul(A.Z,A.Z,p)        # A.Z^2
@@ -401,14 +401,14 @@ def isog_2e(A, S, e):
 	assert is_supersingular(A)
 
 	# return A in simplified (affine) coordinates
-	return A.simplify_point()
+	return A.normalize()
 
 def main():
 
-	A = ECPoint(ComplexPoint(751569296930863363598356131447593046593862768592437527947038742804342540969,
+	A = ECPoint(Fp2Point(751569296930863363598356131447593046593862768592437527947038742804342540969,
 	            1798234580000369932369773894035327870837430306159012850472368713131657937742),p)
 	
-	xK = ComplexPoint(47740012980183545453926806418531833950371247694503085402799232463873975266
+	xK = Fp2Point(47740012980183545453926806418531833950371247694503085402799232463873975266
 				  ,1609588601564889182030537691458495766012715929008094228092802417485560618033)
 
 	order = 52
@@ -421,9 +421,9 @@ def main():
 	print(f"My final A = {rez}\n")
 	print(f"My j_invariant: {j_invariant(rez)}")
 
-	x = ComplexPoint(733129935304444057399094841997377855449615348932625102326641103623966350086,
+	x = Fp2Point(733129935304444057399094841997377855449615348932625102326641103623966350086,
 					622764407792741832064267776029604004876062748457690044116364384817066521173)
-	z = ComplexPoint(971241277239417404462594040891046505615025646569885413196035817346782477360,
+	z = Fp2Point(971241277239417404462594040891046505615025646569885413196035817346782477360,
 				1602963966652920992668623644809404193323285854490388641139684664564451659961)
 	
 	correctRez = ECPoint(x,p,z=z)

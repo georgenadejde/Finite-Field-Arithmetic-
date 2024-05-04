@@ -1,5 +1,5 @@
 from Util import *
-from ComplexPoint import *
+from Fp2Point import *
 from FP_arith import *
 
 
@@ -8,15 +8,15 @@ class ECPoint:
 		
 		'''Creation of an elliptic curve point
 		Args:
-			x (ComplexPoint): x coordinate
+			x (Fp2Point): x coordinate
 			p (int): modulo
-			y (ComplexPoint): y coordinate (default: `0`)
-			z (ComplexPoint): z coordinate (default: `1`)
+			y (Fp2Point): y coordinate (default: `0`)
+			z (Fp2Point): z coordinate (default: `1`)
 		'''
 
 		# y is not needed for montgomery curves
 		if y == 0:
-			self.Y = ComplexPoint(0,0)
+			self.Y = Fp2Point(0,0)
 		else:
 			self.Y = y
 
@@ -24,14 +24,14 @@ class ECPoint:
 		self.X = x
 
 		if z == 1:
-			self.Z = ComplexPoint(1,0)
+			self.Z = Fp2Point(1,0)
 		else:
 			self.Z = z		
 		
-	def simplify_point(self):
+	def normalize(self):
 		# x = X // Z
 		self.X = fp2_div(self.X, self.Z, self.p)
-		self.Z = ComplexPoint(1, 0)
+		self.Z = Fp2Point(1, 0)
 
 		return self
 
@@ -50,10 +50,10 @@ class ECPoint:
 		return self.p
 
 	def is_POIF(self):
-		return self.Z == ComplexPoint(0,0)
+		return self.Z == Fp2Point(0,0)
 
 	def is_T(self):
-		return self.X == ComplexPoint(0,0) and not (self.Z == ComplexPoint(0,0))
+		return self.X == Fp2Point(0,0) and not (self.Z == Fp2Point(0,0))
 
 	def __str__(self):
 		

@@ -1,13 +1,13 @@
 from Util import *
 
-class ComplexPoint:
+class Fp2Point:
     def __init__(self, real, imag, p=1):
         self.real = real
         self.imag = imag
         self.p = p
 
     def __eq__(self, other):
-        if isinstance(other, ComplexPoint):
+        if isinstance(other, Fp2Point):
             return self.real == other.real and self.imag == other.imag # and self.p == other.p
 
         return False

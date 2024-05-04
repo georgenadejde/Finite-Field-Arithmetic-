@@ -3,7 +3,7 @@ import unittest
 from hypothesis import given
 from hypothesis.strategies import integers as rand
 from FP_arith import *
-from ComplexPoint import *
+from Fp2Point import *
 from ECPoint import *
 from math import gcd
 from sympy import isprime
@@ -72,24 +72,24 @@ class TestFPArithmetic(unittest.TestCase):
         
     @given(rand(), rand(), rand(), rand(), rand(2))
     def test_fp2_addition(self, a, b, c, d, mod):
-        result = fp2_add(ComplexPoint(a, b), ComplexPoint(c, d), mod)
-        assert result == ComplexPoint((a + c) % mod, (b + d) % mod)
+        result = fp2_add(Fp2Point(a, b), Fp2Point(c, d), mod)
+        assert result == Fp2Point((a + c) % mod, (b + d) % mod)
 
     @given(rand(), rand(), rand(), rand(), rand(2))
     def test_fp2_subtraction(self, a, b, c, d, mod):
-        result = fp2_sub(ComplexPoint(a, b), ComplexPoint(c, d), mod)
-        assert result == ComplexPoint((a - c) % mod, (b - d) % mod)
+        result = fp2_sub(Fp2Point(a, b), Fp2Point(c, d), mod)
+        assert result == Fp2Point((a - c) % mod, (b - d) % mod)
 
     @given(rand(), rand(), rand(), rand(), rand(2))
     def test_fp2_multiplication(self, a, b, c, d, mod):
-        result = fp2_mul(ComplexPoint(a, b), ComplexPoint(c, d), mod)
+        result = fp2_mul(Fp2Point(a, b), Fp2Point(c, d), mod)
         real_part = (a * c - b * d) % mod
         imag_part = (a * d + b * c) % mod
-        assert result == ComplexPoint(real_part, imag_part)
+        assert result == Fp2Point(real_part, imag_part)
 
     # @given(rand(min_value=0, max_value=10), rand(min_value=0, max_value=10), rand(min_value=0, max_value=10), rand(min_value=2))
     # def test_fp2_power(self, a, b, pw, mod):
-    #     c  = ComplexPoint(a,b,mod)
+    #     c  = Fp2Point(a,b,mod)
     #     rez = C
     #     if 
     #     result = fp2_pow(c, pw, mod)
@@ -97,12 +97,12 @@ class TestFPArithmetic(unittest.TestCase):
 
     @given(rand(), rand(), rand(), rand(), rand(2))
     def test_fp2_division(self, a, b, c, d, mod):
-        c1 = ComplexPoint(a, b)
-        c2 = ComplexPoint(c, d)
+        c1 = Fp2Point(a, b)
+        c2 = Fp2Point(c, d)
         gcd_val = Util.gcd(c2.real, mod)
         if isprime(mod*mod) and gcd_val == 1:
             result = fp2_div(c1, c2, mod)
-            assert result == ComplexPoint((a * c2.real + b * c2.imag) % mod, (b * c2.real - a * c2.imag) % mod)
+            assert result == Fp2Point((a * c2.real + b * c2.imag) % mod, (b * c2.real - a * c2.imag) % mod)
 
 class TestIsogenyFormulas(unittest.TestCase):
     
@@ -110,53 +110,53 @@ class TestIsogenyFormulas(unittest.TestCase):
         pass
         # pg. 15
 
-        # A = ComplexPoint(423,329)
-        # print(xxDBLe(ECPoint(ComplexPoint(79,271),p), 3,A))
-        # assert xxDBLe(ECPoint(ComplexPoint(79,271),p), 3,A) == ECPoint(ComplexPoint(37,18), p)
+        # A = Fp2Point(423,329)
+        # print(xxDBLe(ECPoint(Fp2Point(79,271),p), 3,A))
+        # assert xxDBLe(ECPoint(Fp2Point(79,271),p), 3,A) == ECPoint(Fp2Point(37,18), p)
 
-        # A = ComplexPoint(132,275)
+        # A = Fp2Point(132,275)
         # # pg. 15
-        # assert xxDBLe(ECPoint(ComplexPoint(111,36), p), 2) == ECPoint(ComplexPoint(49,7), p)
+        # assert xxDBLe(ECPoint(Fp2Point(111,36), p), 2) == ECPoint(Fp2Point(49,7), p)
 
-        # A = ComplexPoint(76,273)
+        # A = Fp2Point(76,273)
         # # pg. 15
-        # print(xxDBLe(ECPoint(ComplexPoint(374,274), p), 1,A))
-        # assert xxDBLe(ECPoint(ComplexPoint(374,274), p), 1,A) == ECPoint(ComplexPoint(27,245), p)
+        # print(xxDBLe(ECPoint(Fp2Point(374,274), p), 1,A))
+        # assert xxDBLe(ECPoint(Fp2Point(374,274), p), 1,A) == ECPoint(Fp2Point(27,245), p)
 
 
     def test_j_invariant(self):
         # pg. 7 Craig
-        print(j_invariant(ECPoint(ComplexPoint(415,0),p)))
-        assert j_invariant(ECPoint(ComplexPoint(415,0),p)) == ComplexPoint(189,0)
+        print(j_invariant(ECPoint(Fp2Point(415,0),p)))
+        assert j_invariant(ECPoint(Fp2Point(415,0),p)) == Fp2Point(189,0)
         
         # pg. 6 Craig
-        assert j_invariant(ECPoint(ComplexPoint(423,102),p)) == ComplexPoint(190,344)
+        assert j_invariant(ECPoint(Fp2Point(423,102),p)) == Fp2Point(190,344)
 
         # pg. 6 Craig
-        assert j_invariant(ECPoint(ComplexPoint(161,208),p)) == ComplexPoint(304,364)
+        assert j_invariant(ECPoint(Fp2Point(161,208),p)) == Fp2Point(304,364)
 
         # pg.3 Craig
-        assert j_invariant(ECPoint(ComplexPoint(162,172),p)) == ComplexPoint(304,364)
+        assert j_invariant(ECPoint(Fp2Point(162,172),p)) == Fp2Point(304,364)
 
         # pg. 14 Craig
-        assert j_invariant(ECPoint(ComplexPoint(423,329),p)) == ComplexPoint(190,87)
+        assert j_invariant(ECPoint(Fp2Point(423,329),p)) == Fp2Point(190,87)
 
     def test_compute_A(self):
 
         # pg. 6
-        alpha = ECPoint(ComplexPoint(68,350),p)
+        alpha = ECPoint(Fp2Point(68,350),p)
         newA = get_next_A(alpha)
-        assert j_invariant(newA) == ComplexPoint(190,344)
+        assert j_invariant(newA) == Fp2Point(190,344)
 
         # pg. 15
-        alpha = ECPoint(ComplexPoint(37,18),p)
+        alpha = ECPoint(Fp2Point(37,18),p)
         newA = get_next_A(alpha)
-        assert j_invariant(newA) == ComplexPoint(107,0)
+        assert j_invariant(newA) == Fp2Point(107,0)
 
         # pg. 15
-        alpha = ECPoint(ComplexPoint(49,7),p)
+        alpha = ECPoint(Fp2Point(49,7),p)
         newA = get_next_A(alpha)
-        assert j_invariant(newA) == ComplexPoint(190, 344)
+        assert j_invariant(newA) == Fp2Point(190, 344)
 
     
 

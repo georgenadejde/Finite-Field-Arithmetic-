@@ -1,5 +1,5 @@
 from Util import *
-from ComplexPoint import *
+from Fp2Point import *
 
 def fp_add(x,y,p):
 	'''Finite field F_p addition
@@ -116,7 +116,7 @@ def fp2_add(c1,c2,p):
 		(c1 + c2) % p
 	'''
 
-	return ComplexPoint(fp_add(c1.real, c2.real, p), fp_add(c1.imag, c2.imag, p))
+	return Fp2Point(fp_add(c1.real, c2.real, p), fp_add(c1.imag, c2.imag, p))
 
 def fp2_dbl(x,p):
 	'''Finite field extension F_p2 doubling
@@ -144,7 +144,7 @@ def fp2_sub(c1,c2,p):
 		(c1 - c2) % p
 	'''
 	
-	return ComplexPoint(fp_sub(c1.real, c2.real, p), fp_sub(c1.imag, c2.imag, p))	
+	return Fp2Point(fp_sub(c1.real, c2.real, p), fp_sub(c1.imag, c2.imag, p))	
 
 def fp2_mul(c1,c2,p):
 	'''
@@ -163,7 +163,7 @@ def fp2_mul(c1,c2,p):
 	real_part = fp_sub(fp_mul(c1.real, c2.real, p), fp_mul(c1.imag, c2.imag, p), p)
 	imag_part = fp_add(fp_mul(c1.real, c2.imag, p), fp_mul(c1.imag, c2.real, p), p) 
 
-	return ComplexPoint(real_part, imag_part)
+	return Fp2Point(real_part, imag_part)
 
 def fp2_pow(x,pw,p):
 
@@ -204,7 +204,7 @@ def fp2_div(c1,c2,p):
 	
 	# (a+bi) / (c+di) = (a+bi) (c-di) / (c^2 + d^2)
 
-	c3 = ComplexPoint(c2.real, -c2.imag)
+	c3 = Fp2Point(c2.real, -c2.imag)
 	N  = fp2_mul(c1,c3,p)
 	
 	r4 = fp_pow(c2.real,2,p)
